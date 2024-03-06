@@ -14,14 +14,14 @@ function ManageExpense({route, navigation}) {
     })
   }, [navigation, isEditing])
 
-  function deleteExpenseHandler(params) {
-    
+  function deleteExpenseHandler() {
+    navigation.goBack();
   }
-  function cancelHandler(params) {
-    
+  function cancelHandler() {
+    navigation.goBack();
   }
-  function confirmHandler(params) {
-    
+  function confirmHandler() {
+    navigation.goBack();
   }
 
   return (
