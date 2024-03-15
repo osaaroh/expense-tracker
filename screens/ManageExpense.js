@@ -7,9 +7,11 @@ import { ExpensesContext } from '../store/expenses-context';
 import ExpenseForm from '../components/ManageExpense/ExpenseForm';
 import { storeExpense, updateExpense, deleteExpense } from '../util/http';
 import LoadingOverlay from '../components/UI/LoadingOverlay';
+import ErrorOverlay from '../components/UI/ErrorOverlay';
 
 function ManageExpense({route, navigation}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState();
 
   const expenseCtx = useContext(ExpensesContext);
 
@@ -27,25 +29,48 @@ function ManageExpense({route, navigation}) {
 
   async function deleteExpenseHandler() {
     setIsSubmitting(true)
-    await deleteExpense(editedExpenseId);
+    try {
+      await deleteExpense(editedExpenseId);
+      expenseCtx.deleteExpense(editedExpenseId);
+      navigation.goBack();
+    } catch (error) {
+      setError('Could not delete expense - please try again later')
+      setIsSubmitting(false)
+    }
+    
 
-    expenseCtx.deleteExpense(editedExpenseId)
-    navigation.goBack();
+    
+    
   }
   function cancelHandler() {
     navigation.goBack();
   }
   async function confirmHandler(expenseData) {
-    setIsSubmitting(true)
-    if (isEditing) {
-      expenseCtx.updateExpense(
-        editedExpenseId, expenseData);
-        updateExpense(editedExpenseId, expenseData );
-    } else {
-      const id = await storeExpense(expenseData)
-      expenseCtx.addExpense({expenseData, id: id});
+    setIsSubmitting(true);
+    try {
+      if (isEditing) {
+        expenseCtx.updateExpense(
+          editedExpenseId, expenseData);
+          updateExpense(editedExpenseId, expenseData );
+      } else {
+        const id = await storeExpense(expenseData)
+        expenseCtx.addExpense({expenseData, id: id});
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError('Could not save data- please try again later');
+      setIsSubmitting(false)
     }
-    navigation.goBack();
+    
+    
+  }
+
+  function errorHandler() {
+    setError(null)
+  }
+
+  if (error && !isSubmitting){
+    return <ErrorOverlay message={error} onConfirm={errorHandler}/>
   }
 
   if (isSubmitting) {
